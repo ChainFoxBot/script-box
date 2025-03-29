@@ -1,0 +1,56 @@
+import java.util.*;
+
+public class CronUtils {
+    /**
+     * 根据给定毫秒数生成Cron表达式
+     * @param milliSeconds 间隔毫秒数
+     * @return cron表达式字符串
+     */
+    public static String convertMilliSecondsToCron(long milliSeconds) {
+        if(milliSeconds < 1000) {
+            throw new IllegalArgumentException("毫秒数小于1秒，不支持cron表达式！");
+        }
+
+        long seconds = milliSeconds / 1000;
+
+        if (seconds < 60 && milliSeconds % 1000 == 0) {
+            //秒级别，每n秒执行一次
+            return String.format("0/%d * * * * ?", seconds);
+        }
+
+        long minutes = seconds / 60;
+        if (minutes < 60 && seconds % 60 == 0) {
+            //分钟级别，每n分钟执行一次
+            return String.format("0 0/%d * * * ?", minutes);
+        }
+
+        long hours = minutes / 60;
+        if (hours < 24 && minutes % 60 == 0) {
+            //小时级别，每n小时执行一次
+            return String.format("0 0 0/%d * * ?", hours);
+        }
+
+        long days = hours / 24;
+        if (days <= 31 && hours % 24 == 0) {
+            //天级别，每隔n天执行一次
+            return String.format("0 0 0 1/%d * ?", days);
+        }
+
+        throw new IllegalArgumentException("换算时间过长，难以精确转化为Cron表达式！");
+    }
+
+    public static void main(String[] args) {
+        // 测试用例：
+        List<Long> testMillis = Arrays.asList(1000L, 2000L, 5000L, 60000L, 
+                                              120000L, 3600000L, 7200000L, 86400000L, 
+                                              172800000L);
+        for(Long ms : testMillis){
+            try{
+                String cron = convertMilliSecondsToCron(ms);
+                System.out.println(ms + "毫秒的Cron表达式为：" + cron);
+            }catch (Exception e){
+                System.out.println("输入" + ms + "ms转换失败: " + e.getMessage());
+            }
+        }
+    }
+}
